@@ -1,21 +1,39 @@
 # -*- coding: utf-8 -*-
 
-from .recognition import get_recognizer, get_text
-from .utils import group_text_box, get_image_list, calculate_md5, get_paragraph,\
+from easyocr.recognition import get_recognizer, get_text, get_recognizer_custom
+from easyocr.utils import group_text_box, get_image_list, calculate_md5, get_paragraph,\
                    download_and_unzip, printProgressBar, diff, reformat_input,\
                    make_rotated_img_list, set_result_with_confidence,\
                    reformat_input_batched
-from .config import *
+from easyocr.config import *
 from bidi.algorithm import get_display
-import numpy as np
-import cv2
 import torch
 import os
 import sys
 from PIL import Image
 from logging import getLogger
 import yaml
-import json
+
+class AttrDict(dict):
+    '''loads opt file as dict necessary for easyocr'''
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
+def get_config(file_path):
+
+    '''Creates opt from .yaml for OCR of NumberPlate and Odometer Reading '''
+
+    with open(file_path, 'r', encoding="utf8") as stream:
+        opt = yaml.safe_load(stream)
+    opt = AttrDict(opt)
+    if opt.lang_char is None:
+        opt.character = opt.number + opt.symbol
+    else:
+        opt.character = opt.number + opt.symbol + opt.lang_char
+    return opt
+
 
 if sys.version_info[0] == 2:
     from io import open
@@ -29,7 +47,7 @@ LOGGER = getLogger(__name__)
 
 class Reader(object):
 
-    def __init__(self, lang_list, gpu=True, model_storage_directory=None,
+    def __init__(self, lang_list, opt=None, gpu=True, model_storage_directory=None,
                  user_network_directory=None, detect_network="craft", 
                  recog_network='standard', download_enabled=True, 
                  detector=True, recognizer=True, verbose=True, 
@@ -225,6 +243,9 @@ class Reader(object):
                     }
             else:
                 network_params = recog_config['network_params']
+                if recog_network != 'standard':
+                    assert opt is not None, 'opt is required for custom model'
+                    network_params['opt'] = opt
             self.recognizer, self.converter = get_recognizer(recog_network, network_params,\
                                                          self.character, separator_list,\
                                                          dict_list, model_path, device = self.device, quantize=quantize)
@@ -423,8 +444,6 @@ class Reader(object):
             return [item[1] for item in result]
         elif output_format == 'dict':
             return [ {'boxes':item[0],'text':item[1],'confident':item[2]} for item in result]
-        elif output_format == 'json':
-            return [json.dumps({'boxes':[list(map(int, lst)) for lst in item[0]],'text':item[1],'confident':item[2]}, ensure_ascii=False) for item in result]
         else:
             return result
 
@@ -568,3 +587,191 @@ class Reader(object):
                                             filter_ths, y_ths, x_ths, False, output_format))
 
         return result_agg
+
+
+class Custom_Reader(object):
+
+    def __init__(self, lang_list, device=None,
+                 recognizer=True, verbose=True, 
+                 quantize=True, cudnn_benchmark=False, model_path=None ,yaml_path=None, model_arch=None):
+        """Create an EasyOCR Reader
+
+        Parameters:
+            lang_list (list): Language codes (ISO 639) for languages to be recognized during analysis.
+
+            device (bool): either 'cpu' or 'gpu'
+
+            model_path (string): Path to file .pth or .pt for model data.
+
+            model_arch (string): Path to file .py for custom network architecture.
+
+            yaml_path (string): Path to file .yaml
+
+            recognizer (bool): Must be True to recognize the characters.
+
+
+        """
+        self.verbose = verbose
+        self.device = device
+
+        # check and download detection model
+        self.quantize=quantize, 
+        self.cudnn_benchmark=cudnn_benchmark
+        self.model_path=model_path
+        self.yaml_path=yaml_path
+        self.model_arch=model_arch
+        
+        # recognition model
+        separator_list = {}
+        recog_network = model_arch.split('/')[-1].split('.')[0]
+
+        try: # user-defined model
+            with open(yaml_path, encoding='utf8') as file:
+                recog_config = yaml.load(file, Loader=yaml.FullLoader)
+            
+            global imgH # if custom model, save this variable. (from *.yaml)
+            if recog_config['imgH']:
+                imgH = recog_config['imgH']
+                
+            available_lang = recog_config['lang_list']
+            self.setModelLanguage(recog_network, lang_list, available_lang, str(available_lang))
+            #char_file = os.path.join(self.user_network_directory, recog_network+ '.txt')
+            self.character = recog_config['character_list']
+            # model_file = recog_network+ '.pth'
+            # model_path = 
+            self.setLanguageList(lang_list, recog_config)
+        except:
+            raise Exception('User-defined model is not provided')
+
+        dict_list = {}
+        for lang in lang_list:
+            dict_list[lang] = os.path.join(BASE_PATH, 'dict', lang + ".txt")
+            
+        if recognizer:
+            if recog_network == 'generation1':
+                network_params = {
+                    'input_channel': 1,
+                    'output_channel': 512,
+                    'hidden_size': 512
+                    }
+            elif recog_network == 'generation2':
+                network_params = {
+                    'input_channel': 1,
+                    'output_channel': 256,
+                    'hidden_size': 256
+                    }
+            else:
+                network_params = recog_config['network_params']
+                if recog_network != 'standard':
+                    # assert opt is not None, 'opt is required for custom model'
+                    opt = get_config(yaml_path)
+                    network_params['opt'] = opt
+            self.recognizer, self.converter = get_recognizer_custom(recog_network, network_params,\
+                                                         self.character, separator_list,\
+                                                         dict_list,model_path=model_path, device = device, quantize=quantize)
+
+
+    
+    def setModelLanguage(self, language, lang_list, list_lang, list_lang_string):
+        self.model_lang = language
+        if set(lang_list) - set(list_lang) != set():
+            if language == 'ch_tra' or language == 'ch_sim':
+                language = 'chinese'
+            raise ValueError(language.capitalize() + ' is only compatible with English, try lang_list=' + list_lang_string)
+
+    def getChar(self, fileName):
+        char_file = os.path.join(BASE_PATH, 'character', fileName)
+        with open(char_file, "r", encoding="utf-8-sig") as input_file:
+            list = input_file.read().splitlines()
+            char = ''.join(list)
+        return char
+
+    def setLanguageList(self, lang_list, model):
+        self.lang_char = []
+        for lang in lang_list:
+            char_file = os.path.join(BASE_PATH, 'character', lang + "_char.txt")
+            with open(char_file, "r", encoding = "utf-8-sig") as input_file:
+                char_list =  input_file.read().splitlines()
+            self.lang_char += char_list
+        if model.get('symbols'):
+            symbol = model['symbols']
+        elif model.get('character_list'):
+            symbol = model['character_list']
+        else:
+            symbol = '0123456789!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ '
+        self.lang_char = set(self.lang_char).union(set(symbol))
+        self.lang_char = ''.join(self.lang_char)
+
+
+    def recognize(self, img_cv_grey, horizontal_list=None, free_list=None,\
+                  decoder = 'greedy', beamWidth= 5, batch_size = 1,\
+                  workers = 0, allowlist = None, blocklist = None, detail = 1,\
+                  rotation_info = None,paragraph = False,\
+                  contrast_ths = 0.1,adjust_contrast = 0.5, filter_ths = 0.003,\
+                  y_ths = 0.5, x_ths = 1.0, reformat=True, output_format='standard'):
+
+        if reformat:
+            img, img_cv_grey = reformat_input(img_cv_grey)
+
+        if allowlist:
+            ignore_char = ''.join(set(self.character)-set(allowlist))
+        elif blocklist:
+            ignore_char = ''.join(set(blocklist))
+        else:
+            ignore_char = ''.join(set(self.character)-set(self.lang_char))
+
+        if self.model_lang in ['chinese_tra','chinese_sim']: decoder = 'greedy'
+
+        if (horizontal_list==None) and (free_list==None):
+            y_max, x_max = img_cv_grey.shape
+            horizontal_list = [[0, x_max, 0, y_max]]
+            free_list = []
+
+        # without gpu/parallelization, it is faster to process image one by one
+        if ((batch_size == 1) or (self.device == 'cpu')) and not rotation_info:
+            result = []
+            for bbox in horizontal_list:
+                h_list = [bbox]
+                f_list = []
+                image_list, max_width = get_image_list(h_list, f_list, img_cv_grey, model_height = imgH)
+                result0 = get_text(self.character, imgH, int(max_width), self.recognizer, self.converter, image_list,\
+                              ignore_char, decoder, beamWidth, batch_size, contrast_ths, adjust_contrast, filter_ths,\
+                              workers, self.device)
+                result += result0
+            for bbox in free_list:
+                h_list = []
+                f_list = [bbox]
+                image_list, max_width = get_image_list(h_list, f_list, img_cv_grey, model_height = imgH)
+                result0 = get_text(self.character, imgH, int(max_width), self.recognizer, self.converter, image_list,\
+                              ignore_char, decoder, beamWidth, batch_size, contrast_ths, adjust_contrast, filter_ths,\
+                              workers, self.device)
+                result += result0
+        # default mode will try to process multiple boxes at the same time
+        else:
+            image_list, max_width = get_image_list(horizontal_list, free_list, img_cv_grey, model_height = imgH)
+            image_len = len(image_list)
+            if rotation_info and image_list:
+                image_list = make_rotated_img_list(rotation_info, image_list)
+                max_width = max(max_width, imgH)
+
+            result = get_text(self.character, imgH, int(max_width), self.recognizer, self.converter, image_list,\
+                          ignore_char, decoder, beamWidth, batch_size, contrast_ths, adjust_contrast, filter_ths,\
+                          workers, self.device)
+
+            if rotation_info and (horizontal_list+free_list):
+                # Reshape result to be a list of lists, each row being for 
+                # one of the rotations (first row being no rotation)
+                result = set_result_with_confidence(
+                    [result[image_len*i:image_len*(i+1)] for i in range(len(rotation_info) + 1)])
+
+            direction_mode = 'ltr'
+
+        if paragraph:
+            result = get_paragraph(result, x_ths=x_ths, y_ths=y_ths, mode = direction_mode)
+
+        if detail == 0:
+            return [item[1] for item in result]
+        elif output_format == 'dict':
+            return [ {'boxes':item[0],'text':item[1],'confident':item[2]} for item in result]
+        else:
+            return result
