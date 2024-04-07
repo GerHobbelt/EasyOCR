@@ -640,6 +640,13 @@ def calculate_md5(fname):
 def diff(input_list):
     return max(input_list)-min(input_list)
 
+def remove_spaces(raw_result):
+    for i in range(len(raw_result)):
+        text = raw_result[i][1]
+        text_without_spaces = text.replace(" ", "")
+        raw_result[i] = (raw_result[i][0], text_without_spaces, raw_result[i][2])
+    return raw_result
+
 def get_paragraph(raw_result, x_ths=1, y_ths=0.5, mode = 'ltr'):
     # create basic attributes
     box_group = []

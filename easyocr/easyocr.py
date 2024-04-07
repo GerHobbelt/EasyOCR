@@ -4,7 +4,7 @@ from .recognition import get_recognizer, get_text
 from .utils import group_text_box, get_image_list, calculate_md5, get_paragraph,\
                    download_and_unzip, printProgressBar, diff, reformat_input,\
                    make_rotated_img_list, set_result_with_confidence,\
-                   reformat_input_batched, merge_to_free
+                   reformat_input_batched, merge_to_free, remove_spaces
 from .config import *
 from bidi.algorithm import get_display
 import numpy as np
@@ -170,6 +170,7 @@ class Reader(object):
             model_path = os.path.join(self.model_storage_directory, model['filename'])
             # check recognition model file
             if recognizer:
+                corrupt_msg = 'MD5 hash mismatch, possible file corruption'
                 if os.path.isfile(model_path) == False:
                     if not self.download_enabled:
                         raise FileNotFoundError("Missing %s and downloads disabled" % model_path)
@@ -355,7 +356,8 @@ class Reader(object):
                   workers = 0, allowlist = None, blocklist = None, detail = 1,\
                   rotation_info = None,paragraph = False,\
                   contrast_ths = 0.1,adjust_contrast = 0.5, filter_ths = 0.003,\
-                  y_ths = 0.5, x_ths = 1.0, reformat=True, output_format='standard'):
+                  y_ths = 0.5, x_ths = 1.0, reformat=True, allow_spaces = True,
+                  output_format='standard'):
 
         if reformat:
             img, img_cv_grey = reformat_input(img_cv_grey)
@@ -419,6 +421,9 @@ class Reader(object):
         else:
             direction_mode = 'ltr'
 
+        if not allow_spaces:
+            result = remove_spaces(result)
+
         if paragraph:
             result = get_paragraph(result, x_ths=x_ths, y_ths=y_ths, mode = direction_mode)
 
@@ -437,6 +442,9 @@ class Reader(object):
         else:
             return result
 
+
+
+
     def readtext(self, image, decoder = 'greedy', beamWidth= 5, batch_size = 1,\
                  workers = 0, allowlist = None, blocklist = None, detail = 1,\
                  rotation_info = None, paragraph = False, min_size = 20,\
@@ -446,7 +454,7 @@ class Reader(object):
                  slope_ths = 0.1, ycenter_ths = 0.5, height_ths = 0.5,\
                  width_ths = 0.5, y_ths = 0.5, x_ths = 1.0, add_margin = 0.1, 
                  threshold = 0.2, bbox_min_score = 0.2, bbox_min_size = 3, max_candidates = 0,
-                 output_format='standard'):
+                 allow_spaces = True, output_format='standard'):
         '''
         Parameters:
         image: file path or numpy-array or a byte stream object
@@ -469,7 +477,8 @@ class Reader(object):
                                 decoder, beamWidth, batch_size,\
                                 workers, allowlist, blocklist, detail, rotation_info,\
                                 paragraph, contrast_ths, adjust_contrast,\
-                                filter_ths, y_ths, x_ths, False, output_format)
+                                filter_ths, y_ths, x_ths, False, allow_spaces,
+                                output_format)
 
         return result
     
