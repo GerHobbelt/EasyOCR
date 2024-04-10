@@ -107,3 +107,6 @@ ENV/
 .vscode/
 .vs/
 .idea/
+
+# Trainind data
+trainer/all_data/*

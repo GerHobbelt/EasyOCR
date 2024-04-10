@@ -1,0 +1,216 @@
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 882
+num total samples of en_sample: 882 x 1.0 (total_data_usage_ratio) = 882
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 882
+num total samples of en_sample: 882 x 1.0 (total_data_usage_ratio) = 882
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 882
+num total samples of en_sample: 882 x 1.0 (total_data_usage_ratio) = 882
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 882
+num total samples of en_sample: 882 x 1.0 (total_data_usage_ratio) = 882
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 882
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 875
+num total samples of en_sample: 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 875
+num total samples of en_sample: 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: 
+sub-directory:	/en_sample	 num samples: 875
+num total samples of : 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of  per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: 
+sub-directory:	/en_sample	 num samples: 875
+num total samples of : 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of  per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 875
+num total samples of en_sample: 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 875
+num total samples of en_sample: 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 875
+num total samples of en_sample: 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 875
+num total samples of en_sample: 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 875
+num total samples of en_sample: 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 875
+num total samples of en_sample: 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: all_data
+opt.select_data: ['en_sample']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: en_sample
+sub-directory:	/en_sample	 num samples: 875
+num total samples of en_sample: 875 x 1.0 (total_data_usage_ratio) = 875
+num samples of en_sample per batch: 32 x 1.0 (batch_ratio) = 32
+--------------------------------------------------------------------------------
+Total_batch_size: 32 = 32
+--------------------------------------------------------------------------------
+dataset_root:    all_data	 dataset: /
+sub-directory:	/en_sample	 num samples: 875
+--------------------------------------------------------------------------------
