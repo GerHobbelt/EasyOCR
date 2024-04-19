@@ -17,6 +17,7 @@ from model import Model
 from test import validation
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
 def count_parameters(model):
     print("Modules, Parameters")
     total_params = 0
@@ -30,6 +31,7 @@ def count_parameters(model):
     return total_params
 
 def train(opt, show_number = 2, amp=False):
+    print('Processor :' , device)
     """ dataset preparation """
     if not opt.data_filtering_off:
         print('Filtering the images containing characters which are not in opt.character')
