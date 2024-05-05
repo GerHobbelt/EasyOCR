@@ -14,8 +14,10 @@ import os
 import sys
 from PIL import Image
 from logging import getLogger
+from ultralytics import YOLO
 import yaml
 import json
+
 
 if sys.version_info[0] == 2:
     from io import open
@@ -30,7 +32,7 @@ LOGGER = getLogger(__name__)
 class Reader(object):
 
     def __init__(self, lang_list, gpu=True, model_storage_directory=None,
-                 user_network_directory=None, detect_network="craft", 
+                 user_network_directory=None, detect_network="yolo", 
                  recog_network='standard', download_enabled=True, 
                  detector=True, recognizer=True, verbose=True, 
                  quantize=True, cudnn_benchmark=False):
@@ -85,11 +87,12 @@ class Reader(object):
         self.recognition_models = recognition_models
 
         # check and download detection model
-        self.support_detection_network = ['craft', 'dbnet18']
+        self.support_detection_network = ['yolo8']
         self.quantize=quantize, 
         self.cudnn_benchmark=cudnn_benchmark
         if detector:
             detector_path = self.getDetectorPath(detect_network)
+
         
         # recognition model
         separator_list = {}
@@ -236,44 +239,17 @@ class Reader(object):
     def getDetectorPath(self, detect_network):
         if detect_network in self.support_detection_network:
             self.detect_network = detect_network
-            if self.detect_network == 'craft':
-                from .detection import get_detector, get_textbox
-            elif self.detect_network in ['dbnet18']:
-                from .detection_db import get_detector, get_textbox
-            else:
-                raise RuntimeError("Unsupport detector network. Support networks are craft and dbnet18.")
-            self.get_textbox = get_textbox
-            self.get_detector = get_detector
-            corrupt_msg = 'MD5 hash mismatch, possible file corruption'
             detector_path = os.path.join(self.model_storage_directory, self.detection_models[self.detect_network]['filename'])
             if os.path.isfile(detector_path) == False:
-                if not self.download_enabled:
-                    raise FileNotFoundError("Missing %s and downloads disabled" % detector_path)
-                LOGGER.warning('Downloading detection model, please wait. '
-                               'This may take several minutes depending upon your network connection.')
-                download_and_unzip(self.detection_models[self.detect_network]['url'], self.detection_models[self.detect_network]['filename'], self.model_storage_directory, self.verbose)
-                assert calculate_md5(detector_path) == self.detection_models[self.detect_network]['md5sum'], corrupt_msg
-                LOGGER.info('Download complete')
-            elif calculate_md5(detector_path) != self.detection_models[self.detect_network]['md5sum']:
-                if not self.download_enabled:
-                    raise FileNotFoundError("MD5 mismatch for %s and downloads disabled" % detector_path)
-                LOGGER.warning(corrupt_msg)
-                os.remove(detector_path)
-                LOGGER.warning('Re-downloading the detection model, please wait. '
-                               'This may take several minutes depending upon your network connection.')
-                download_and_unzip(self.detection_models[self.detect_network]['url'], self.detection_models[self.detect_network]['filename'], self.model_storage_directory, self.verbose)
-                assert calculate_md5(detector_path) == self.detection_models[self.detect_network]['md5sum'], corrupt_msg
+                raise FileNotFoundError("Missing %s" % detector_path)
+        
         else:
             raise RuntimeError("Unsupport detector network. Support networks are {}.".format(', '.join(self.support_detection_network)))
-        
         return detector_path
 
     def initDetector(self, detector_path):
-        return self.get_detector(detector_path, 
-                                 device = self.device, 
-                                 quantize = self.quantize, 
-                                 cudnn_benchmark = self.cudnn_benchmark
-                                 )
+        detector = YOLO(model = detector_path)
+        return detector
     
     def setDetector(self, detect_network):
         detector_path = self.getDetectorPath(detect_network)
@@ -315,40 +291,23 @@ class Reader(object):
                width_ths = 0.5, add_margin = 0.1, reformat=True, optimal_num_chars=None,
                threshold = 0.2, bbox_min_score = 0.2, bbox_min_size = 3, max_candidates = 0,
                ):
+        
+        results = self.detector.predict(source = img)
 
-        if reformat:
-            img, img_cv_grey = reformat_input(img)
-
-        text_box_list = self.get_textbox(self.detector, 
-                                    img, 
-                                    canvas_size = canvas_size, 
-                                    mag_ratio = mag_ratio,
-                                    text_threshold = text_threshold, 
-                                    link_threshold = link_threshold, 
-                                    low_text = low_text,
-                                    poly = False, 
-                                    device = self.device, 
-                                    optimal_num_chars = optimal_num_chars,
-                                    threshold = threshold, 
-                                    bbox_min_score = bbox_min_score, 
-                                    bbox_min_size = bbox_min_size, 
-                                    max_candidates = max_candidates,
-                                    )
+        for result in results:
+            boxes = result.boxes.cpu()
+            conf = boxes.conf.numpy()
+            conf = np.array(conf, dtype=float).tolist()
+            conf = [round(conf_val, 3) for conf_val in conf]
+            xyxy = boxes.xyxy.numpy()
+            xyxy = np.array(xyxy, dtype=int).tolist()
+            boxes = [[xyxy_val, conf_val] for xyxy_val, conf_val in zip(xyxy, conf)]
 
         horizontal_list_agg, free_list_agg = [], []
-        for text_box in text_box_list:
-            horizontal_list, free_list = group_text_box(text_box, slope_ths,
-                                                        ycenter_ths, height_ths,
-                                                        width_ths, add_margin,
-                                                        (optimal_num_chars is None))
-            if min_size:
-                horizontal_list = [i for i in horizontal_list if max(
-                    i[1] - i[0], i[3] - i[2]) > min_size]
-                free_list = [i for i in free_list if max(
-                    diff([c[0] for c in i]), diff([c[1] for c in i])) > min_size]
-            horizontal_list_agg.append(horizontal_list)
-            free_list_agg.append(free_list)
 
+        for bbox, conf in boxes:
+            if bbox_min_score < conf :
+                horizontal_list_agg.append(bbox)
         return horizontal_list_agg, free_list_agg
 
     def recognize(self, img_cv_grey, horizontal_list=None, free_list=None,\
@@ -471,8 +430,7 @@ class Reader(object):
                                                  threshold = threshold, bbox_min_score = bbox_min_score,\
                                                  bbox_min_size = bbox_min_size, max_candidates = max_candidates
                                                  )
-        # get the 1st result from hor & free list as self.detect returns a list of depth 3
-        horizontal_list, free_list = horizontal_list[0], free_list[0]
+
         result = self.recognize(img_cv_grey, horizontal_list, free_list,\
                                 decoder, beamWidth, batch_size,\
                                 workers, allowlist, blocklist, detail, rotation_info,\
